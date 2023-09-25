@@ -1,15 +1,42 @@
+"use client";
 import Head from "next/head";
 import Image from "next/image";
 import Link from "next/link";
+import { useState } from "react";
+import supabase from "./supabase";
+import SignInModal from "../components/SignInModal";
 
 export default function Home() {
+  const [showModal, setShowModal] = useState(false);
+  const [user, setUser] = useState();
+
+  async function getUser() {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    setUser(user);
+  }
+
+  const handleProfileClick = async () => {
+    if (!user) {
+      console.log("No user signed in");
+      // If the user is not authenticated, show the sign-in/sign-up modal
+      setShowModal(true);
+    } else {
+      // If the user is authenticated, perform other actions, e.g., show a dropdown menu.
+      // For this example, let's simply log the user out.
+      await supabase.auth.signOut();
+      setUser(null); // Update the user state after logout.
+      console.log("User Logged In");
+    }
+  };
   return (
     <div className="container mx-auto p-4">
       <Head>
         <title>NodeScribe - Home</title>
         <meta
           name="description"
-          content="NodeScribe, a Let's Build a Better Future"
+          content="NodeScribe, Let's Build a Better Future"
         />
         <link rel="icon" href="/favicon.ico" />
       </Head>
@@ -17,39 +44,50 @@ export default function Home() {
       <div className="flex">
         {/* Left Column */}
         <div className="w-1/4 p-4">
-          {/* Profile Summary */}
+          {/* NodeSage Logo */}
           <div className="mb-4">
             <Image
-              src="/path_to_profile_picture.jpg"
-              alt="Profile"
-              className="w-12 h-12 rounded-full"
-              width="25"
-              height="25"
+              src="/node.PNG"
+              alt="NodeSage Logo"
+              width={200} // Adjust as needed
+              height={200} // Adjust as needed
             />
-            <h3 className="text-xl font-bold">Username</h3>
           </div>
 
           {/* Navigation Links */}
-          <nav>
-            <Link href="#" className="block mb-2">
+          <nav className="flex flex-col text-2xl">
+            <Link className="pb-2" href="#">
               Home
             </Link>
-            <Link href="#" className="block mb-2">
+            <Link className="pb-2" href="#">
               Explore
             </Link>
-            <Link href="#" className="block mb-2">
-              Notifications
-            </Link>
+            <Link href="#">Notifications</Link>
             {/* ... other links */}
           </nav>
+
+          {/* Profile Picture */}
+          <div className="mt-4">
+            <img
+              src={user?.user_metadata?.avatar_url || "/defaultpfp.png"}
+              alt="Profile"
+              className="w-12 h-12 rounded-full cursor-pointer"
+              onClick={handleProfileClick}
+            />
+          </div>
+
+          {showModal && <SignInModal onClose={() => setShowModal(false)} />}
         </div>
 
         {/* Center Column */}
         <div className="w-1/2 p-4">
+          {/* "Home" Text */}
+          <h2 className="text-4xl font-bold mb-4">Home</h2>
+
           {/* Tweet Input Area */}
           <div className="mb-4">
             <textarea
-              className="w-full h-[250px] p-2 rounded border"
+              className="bg-black border-black text-white w-full h-[250px] p-2 rounded border text-xl"
               placeholder="What's happening?"
             ></textarea>
             <button className="mt-2 bg-blue-500 text-white px-4 py-2 rounded">
@@ -76,7 +114,7 @@ export default function Home() {
             <input
               type="text"
               className="w-full p-2 rounded border"
-              placeholder="Search X"
+              placeholder="Search NanoScribe"
             />
           </div>
 
@@ -102,7 +140,7 @@ export default function Home() {
                 alt="Suggested Profile"
                 className="w-8 h-8 rounded-full mr-2"
               />
-              <span>Suggested Username</span>
+              <span>Suggestions</span>
             </div>
             {/* Repeat for more suggestions */}
           </div>
